@@ -1,37 +1,40 @@
 import 'package:flutter/material.dart';
 import '../models/video_model.dart';
 import '../services/youtube_api_service.dart';
+import '../helper.dart';
 import '../widgets/video_list_widget.dart';
 import 'video_page.dart';
 
 class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key});
+
   @override
-  _SearchScreenState createState() => _SearchScreenState();
+  SearchScreenState createState() => SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class SearchScreenState extends State<SearchScreen> {
   final YouTubeApiService _apiService = YouTubeApiService();
   List<VideoModel> _searchResults = [];
   bool _isLoading = false;
   final TextEditingController _searchController = TextEditingController();
 
   Future<void> _performSearch(String query) async {
-    setState(() {
-      _isLoading = true;
-    });
+    await Helper.handleRequest(() async {
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
 
-    try {
       final videos = await _apiService.fetchVideos(query: query);
-      setState(() {
-        _searchResults = videos;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('Error searching videos: $e');
-      setState(() {
-        _isLoading = false;
-      });
-    }
+
+      if (mounted) {
+        setState(() {
+          _searchResults = videos;
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -42,8 +45,8 @@ class _SearchScreenState extends State<SearchScreen> {
         backgroundColor: Colors.black,
         title: TextField(
           controller: _searchController,
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
             hintText: 'Search YouTube',
             hintStyle: TextStyle(color: Colors.grey),
             border: InputBorder.none,
@@ -56,7 +59,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search, color: Colors.white),
+            icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () {
               if (_searchController.text.isNotEmpty) {
                 _performSearch(_searchController.text);
@@ -69,7 +72,11 @@ class _SearchScreenState extends State<SearchScreen> {
         children: [
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                  )
                 : SingleChildScrollView(
                     child: VideoListWidget(
                       videos: _searchResults,

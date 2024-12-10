@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
+import '../helper.dart';
+
 class VideoStreamService {
   final _yt = YoutubeExplode();
 
-  Future<String> getVideoUrl(String videoId) async {
+  Future<String?> getVideoUrl(String videoId) async {
     if (videoId.isEmpty) {
-      throw Exception('Video ID cannot be empty');
+      debugPrint('Video ID cannot be empty');
+      return null;
     }
 
-    try {
+    return Helper.handleRequest(() async {
       // Get the video manifest
       var manifest = await _yt.videos.streamsClient.getManifest(videoId);
 
@@ -27,10 +30,7 @@ class VideoStreamService {
 
       var streamInfo = streams.withHighestBitrate();
       return streamInfo.url.toString();
-    } catch (e) {
-      debugPrint('Error getting video URL: $e');
-      throw Exception('Could not load video stream');
-    }
+    });
   }
 
   void dispose() {

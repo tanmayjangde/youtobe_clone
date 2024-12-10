@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../helper.dart';
 import '../models/channel_model.dart';
 import '../models/video_model.dart';
 import '../services/youtube_api_service.dart';
@@ -38,24 +39,20 @@ class _ChannelPageState extends State<ChannelPage>
   }
 
   Future<void> _loadChannelData() async {
-    try {
-      setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-      final channel = await _apiService.fetchChannelDetails(widget.channelId);
-      final videos = await _apiService.fetchChannelVideos(widget.channelId);
+    final channelResult = await Helper.handleRequest(
+        () => _apiService.fetchChannelDetails(widget.channelId));
 
-      if (mounted) {
-        setState(() {
-          _channel = channel;
-          _videos = videos;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading channel data: $e');
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    final videosResult = await Helper.handleRequest(
+        () => _apiService.fetchChannelVideos(widget.channelId));
+
+    if (mounted) {
+      setState(() {
+        _channel = channelResult;
+        _videos = videosResult ?? [];
+        _isLoading = false;
+      });
     }
   }
 

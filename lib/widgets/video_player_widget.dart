@@ -21,6 +21,11 @@ class YoutubePlayerWidgetState extends State<YoutubePlayerWidget> {
   @override
   void initState() {
     super.initState();
+    _initializeController();
+    widget.onPlayerStateCreated(this);
+  }
+
+  void _initializeController() {
     _controller = YoutubePlayerController(
       initialVideoId: widget.videoId,
       flags: const YoutubePlayerFlags(
@@ -33,23 +38,18 @@ class YoutubePlayerWidgetState extends State<YoutubePlayerWidget> {
         enableCaption: true,
       ),
     );
-    widget.onPlayerStateCreated(this);
-  }
-
-  @override
-  void deactivate() {
-    _controller.pause();
-    super.deactivate();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   void pause() {
     _controller.pause();
+  }
+
+  void seekTo(Duration position) {
+    _controller.seekTo(position);
+  }
+
+  Duration getCurrentPosition() {
+    return _controller.value.position;
   }
 
   @override
@@ -65,10 +65,27 @@ class YoutubePlayerWidgetState extends State<YoutubePlayerWidget> {
           bufferedColor: Colors.grey,
           backgroundColor: Colors.black,
         ),
+        onReady: () {
+          // Sync position if necessary
+          final currentPosition = _controller.value.position;
+          _controller.seekTo(currentPosition);
+        },
       ),
       builder: (context, player) {
         return player;
       },
     );
+  }
+
+  @override
+  void deactivate() {
+    _controller.pause();
+    super.deactivate();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
